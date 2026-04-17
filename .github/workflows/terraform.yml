@@ -1,27 +1,31 @@
-name: Terraform CI (Plan Only)
+name: Terraform Plan
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ main ]
   pull_request:
 
 jobs:
   terraform:
-    name: Terraform Plan
     runs-on: ubuntu-latest
 
     defaults:
       run:
-        working-directory: environments/prod
+        working-directory: environments/dev
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v3
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
         with:
-          terraform_version: 1.6.6
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          region: ${{ secrets.AWS_REGION }}
 
       - name: Terraform Init
         run: terraform init
@@ -30,4 +34,4 @@ jobs:
         run: terraform validate
 
       - name: Terraform Plan (NO APPLY)
-        run: terraform plan
+        run: terraform plan -no-color
